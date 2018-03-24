@@ -75,8 +75,8 @@ module "vault_cluster" {
   ami_id    = "${var.ami_id == "" ? data.aws_ami.vault_consul.image_id : var.ami_id}"
   user_data = "${data.template_file.user_data_vault_cluster.rendered}"
 
-  vpc_id     = "${data.aws_vpc.default.id}"
-  subnet_ids = "${data.aws_subnet_ids.default.ids}"
+  vpc_id     = "${data.terraform_remote_state.networkbase.vpcid}"
+  subnet_ids = "${data.terraform_remote_state.networkbase.private_subnets}"
 
   # Tell each Vault server to register in the ELB.
   load_balancers = ["${module.vault_elb.load_balancer_name}"]
@@ -206,12 +206,3 @@ data "template_file" "user_data_consul" {
 # and private subnets. Only the ELB should run in the public subnets.
 # ---------------------------------------------------------------------------------------------------------------------
 
-data "aws_vpc" "default" {
-  default = "${var.use_default_vpc}"
-  tags    = "${var.vpc_tags}"
-}
-
-data "aws_subnet_ids" "default" {
-  vpc_id = "${data.aws_vpc.default.id}"
-  tags   = "${var.subnet_tags}"
-}
